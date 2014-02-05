@@ -1,6 +1,10 @@
 #include "timer.h"
 
 std::map<std::string,double> Timer::times = std::map<std::string,double>();
+std::map<std::string,double> Timer::max_time = std::map<std::string,double>();
+std::map<std::string,double> Timer::min_time = std::map<std::string,double>();
+std::map<std::string,double> Timer::mean_time = std::map<std::string,double>();
+std::map<std::string,double> Timer::sum_time = std::map<std::string,double>();
 
 std::map<std::string,unsigned long> Timer::count = 
   std::map<std::string,unsigned long>();
@@ -69,13 +73,20 @@ void Timer::start(std::string timerId)
     double ms = (double)msTime.tv_sec * 1000 + (double)msTime.tv_usec / 1000 ;
     times.insert(Psd(timerId,ms));
     count.insert(Psul(timerId,0));
+    mean_time.insert(Psul(timerId,0));
+    sum_time.insert(Psul(timerId,0));
+    max_time.insert(Psd(timerId,-1.0));
+    min_time.insert(Psd(timerId,1000000000000000.0));
   }
   else
   {
     gettimeofday(&msTime, NULL);
     double ms = (double)msTime.tv_sec * 1000 + (double)msTime.tv_usec / 1000 ;
     it->second = ms;
-    count[timerId] = 0;
+    mean_time.insert(Psul(timerId,0));
+    sum_time.insert(Psul(timerId,0));
+    max_time.insert(Psd(timerId,-1.0));
+    min_time.insert(Psd(timerId,1000000000000000.0));
   }
 }
 
@@ -105,9 +116,7 @@ double Timer::mean(std::string timerId)
   }
   else
   {
-    gettimeofday(&msTime , NULL);
-    double ms = (double)msTime.tv_sec * 1000 + (double)msTime.tv_usec / 1000 ;
-    return (ms - it->second) / count[timerId];
+    return mean_time[timerId];
   }
 }
 
@@ -121,6 +130,10 @@ void Timer::tick(std::string timerId)
   else
   {
     count[timerId]++;
+    gettimeofday(&msTime , NULL);
+    double ms = (double)msTime.tv_sec * 1000 + (double)msTime.tv_usec / 1000 ;
+    sum_time[timerId] += (ms - it->second);
+    mean_time[timerId] = sum_time[timerId] / count[timerId];
   }
 }
 
@@ -164,9 +177,7 @@ void Timer::printLiteralMean(std::string timerId)
   else
   {
     std::cout << "Timer " << timerId << " mean time : ";
-    gettimeofday(&msTime , NULL);
-    double ms = (double)msTime.tv_sec * 1000 + (double)msTime.tv_usec / 1000 ;
-    printLiteralInternal((ms - it->second) / count[timerId]);
+    printLiteralInternal(mean_time[timerId]);
   }
 }
 

@@ -16,6 +16,10 @@ class Timer{
   typedef std::pair<std::string,unsigned long> Psul;
   
   static Msd times;
+  static Msd max_time;
+  static Msd min_time;
+  static Msd mean_time;
+  static Msd sum_time;
   static Msul count;
   static struct timeval msTime;
 
